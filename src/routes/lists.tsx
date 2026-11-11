@@ -1,0 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
+import { FolderOpen, Plus, Trash2, X } from 'lucide-react';
+import { PageHeader } from '@/components/AppShell';
+import { Button } from '@/components/ui/button';
+import { ConfirmDelete, EmptyState, fieldClass, LeadSelect } from '@/components/WorkspaceUI';
+import { getCompany } from '@/lib/data';
+import { useWorkspace } from '@/lib/workspace-store';
+import { addListMember } from '@/lib/workspace';
+import { pageMeta } from '@/lib/page-meta';
+export const Route = createFileRoute('/lists')({ head: () => pageMeta('Lead Lists', 'Organize your saved companies into focused lead lists.'), component: Lists });
+function Lists() {
+  const { lists, update } = useWorkspace(); const [name, setName] = useState(''); const [selected, setSelected] = useState(''); const [lead, setLead] = useState(''); const [deleting, setDeleting] = useState<string | null>(null);
+  const current = lists.find(l => l.id === selected) ?? lists[0];
+  return <><PageHeader title="Lead Lists" description="Focused collections of companies you've saved." /><form className="mb-8 flex max-w-lg gap-2" onSubmit={e => { e.preventDefault(); if (!name.trim()) return; const id = crypto.randomUUID(); update(p => ({ ...p, lists: [...p.lists, { id, name: name.trim(), companyIds: [] }] })); setSelected(id); setName(''); }}><input aria-label="List name" required maxLength={80} className={fieldClass} placeholder="New list name" value={name} onChange={e => setName(e.target.value)} /><Button type="submit"><Plus />Create list</Button></form>
+  {!lists.length ? <EmptyState title="No lists yet" /> : <div className="grid gap-8 md:grid-cols-[220px_1fr]"><nav aria-label="Lead lists" className="space-y-2">{lists.map(l => <Button key={l.id} variant={current?.id === l.id ? 'secondary' : 'ghost'} className="h-auto min-h-10 w-full justify-start whitespace-normal text-left" onClick={() => { setSelected(l.id); setLead(''); }}><FolderOpen /><span className="min-w-0 flex-1 break-words">{l.name}</span><span>{l.companyIds.length}</span></Button>)}</nav>{current && <section className="min-w-0"><div className="mb-5 flex items-center justify-between gap-3"><h2 className="break-words text-xl font-semibold">{current.name}</h2><Button variant="ghost" size="icon" aria-label="Delete list" title="Delete list" onClick={() => setDeleting(current.id)}><Trash2 /></Button></div><div className="mb-6 flex gap-2"><LeadSelect value={lead} onChange={setLead} /><Button disabled={!lead || current.companyIds.includes(lead)} onClick={() => { update(p => ({ ...p, lists: p.lists.map(l => l.id === current.id ? addListMember(l, lead) : l) })); setLead(''); }}><Plus />Add lead</Button></div>{!current.companyIds.length ? <EmptyState title="This list has no companies yet" /> : <div className="divide-y border-y">{current.companyIds.map(id => { const c = getCompany(id); return c && <div key={id} className="flex items-center justify-between gap-3 py-4"><div><h3 className="font-semibold">{c.name}</h3><p className="text-sm text-muted-foreground">{c.industry} · {c.city}, {c.country}</p></div><Button variant="ghost" size="icon" aria-label="Remove from list" title="Remove from list" onClick={() => update(p => ({ ...p, lists: p.lists.map(l => l.id === current.id ? { ...l, companyIds: l.companyIds.filter(x => x !== id) } : l) }))}><X /></Button></div>; })}</div>}</section>}</div>}
+  <ConfirmDelete open={Boolean(deleting)} onClose={() => setDeleting(null)} description="Delete this list? Your saved companies will not be deleted." onConfirm={() => update(p => ({ ...p, lists: p.lists.filter(l => l.id !== deleting) }))} /></>;
+}
