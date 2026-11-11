@@ -10,7 +10,7 @@ import { useCompare } from "@/lib/compare";
 import { getCompany, getLiveAnalysis, getLiveSource } from "@/lib/data";
 import { LiveAnalysis } from "@/components/LiveAnalysis";
 import { ResearchReportButton } from "@/components/ResearchReportButton";
-import { useStore, type Status } from "@/lib/store";
+import { useStore, SAVED_LEAD_STATUSES, type Status } from "@/lib/store";
 import { useWorkspace } from "@/lib/workspace-store";
 
 export const Route = createFileRoute("/leads")({
@@ -27,11 +27,13 @@ export const Route = createFileRoute("/leads")({
   component: MyLeads,
 });
 
-const STATUSES: Status[] = ["New", "Reviewing", "Contacted"];
+const STATUSES: Status[] = SAVED_LEAD_STATUSES;
 const statusStyle: Record<Status, string> = {
   New: "bg-potential-soft text-potential",
   Reviewing: "bg-warm-soft text-warm",
   Contacted: "bg-insight-soft text-insight",
+  Interested: "bg-insight-soft text-insight",
+  "Not Interested": "bg-muted text-muted-foreground",
 };
 
 function MyLeads() {

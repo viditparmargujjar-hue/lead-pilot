@@ -3,7 +3,9 @@ import { DEFAULT_CRITERIA, type Criteria } from "./ai";
 import { getCompany, loadLiveCompanies } from "./data";
 import { toast } from "sonner";
 
-export type Status = "New" | "Reviewing" | "Contacted";
+export type Status = "New" | "Reviewing" | "Contacted" | "Interested" | "Not Interested";
+export const SAVED_LEAD_STATUSES: Status[] = ["New", "Reviewing", "Contacted", "Interested", "Not Interested"];
+export const isSavedLeadStatus = (value: unknown): value is Status => typeof value === "string" && SAVED_LEAD_STATUSES.includes(value as Status);
 export interface SavedLead {
   companyId: string;
   status: Status;
@@ -41,7 +43,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (!Array.isArray(value)) throw new Error();
         const ids = new Set<string>();
         setSaved(value.filter((s: SavedLead) => {
-          if (!s || !getCompany(s.companyId) || ids.has(s.companyId) || !["New", "Reviewing", "Contacted"].includes(s.status) || !Number.isFinite(s.savedAt)) return false;
+          if (!s || !getCompany(s.companyId) || ids.has(s.companyId) || !isSavedLeadStatus(s.status) || !Number.isFinite(s.savedAt)) return false;
           ids.add(s.companyId); return true;
         }));
       }

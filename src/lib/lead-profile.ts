@@ -37,7 +37,7 @@ export function toLeadProfile(r: LiveResult, query: string, analysis?: Intellige
     website: r.website || null, domain: r.domain, phones: c.phones, emails: c.emails, whatsapp: c.whatsapp,
     linkedin: social(text, "linkedin\\.com"), instagram: social(text, "instagram\\.com"), facebook: social(text, "facebook\\.com"), youtube: social(text, "youtube\\.com"),
     location, city, state, country, employees: f?.size?.value ?? null, products: f?.products?.value ?? null, contacts: f?.contacts?.value ?? null,
-    source: "Tavily web search", sourceUrl: r.sourceUrl, retrievedAt: analysis?.analyzedAt ?? r.fetchedAt, verified: !!analysis,
+    source: "Tavily web search", sourceUrl: r.sourceUrl, retrievedAt: r.fetchedAt, verified: !!analysis?.pages.length,
   };
   const have = [!!p.name, p.phones.length > 0, p.emails.length > 0, !!p.website, !!p.location, !!p.industry, !!p.employees, !!p.linkedin];
   return { ...p, completeness: Math.round((have.filter(Boolean).length / have.length) * 100) };
@@ -52,6 +52,13 @@ export const EXPORT_COLUMNS: [string, (p: LeadProfile) => string][] = [
   ["Business Description", p => p.description ?? ""], ["Data Source", p => p.source], ["Source URL", p => p.sourceUrl],
   ["Data Retrieval Date", p => p.retrievedAt], ["Data Completeness", p => `${p.completeness}%`],
 ];
+
+export const availableProfileFields = (profiles: LeadProfile[]) => ({
+  phone: profiles.some(p => p.phones.length > 0), email: profiles.some(p => p.emails.length > 0),
+  website: profiles.some(p => !!p.website), linkedin: profiles.some(p => !!p.linkedin),
+  whatsapp: profiles.some(p => !!p.whatsapp), industry: profiles.some(p => !!p.industry),
+  location: profiles.some(p => !!p.location),
+});
 
 export function leadsToCsv(list: LeadProfile[]): string {
   const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);

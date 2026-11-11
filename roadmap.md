@@ -1,5 +1,11 @@
 # LeadPilot upgrade
 
+## Live lead-results experience
+- [ ] Normalize Tavily results and existing cited research without fabricating missing facts.
+- [ ] Add completeness, contact-aware cards, detailed profiles, summary metrics, filters, sorting, selection, and bulk CSV/Excel actions.
+- [ ] Add Interested and Not Interested saved-lead statuses while preserving saved browser data.
+- [ ] Test normalization/statuses and verify search, details, save, bulk actions, exports, and responsive layouts.
+
 ## Live result card accuracy
 - [x] Filter unrelated and directory results locally; add honest source-based location and scoring summaries while preserving lead actions. Real Tavily search succeeded, saving/reload and comparison were verified; excerpts lacking requested locations are excluded, and remaining evidence gaps receive unavailable labels. No per-lead API calls added.
 
