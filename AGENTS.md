@@ -22,3 +22,4 @@
 - Company evidence retrieval is a bounded, cached server-only Tavily helper called on explicit research actions; AI extraction preserves the existing Gateway model and cannot fetch arbitrary supplied URLs.
 - Cited research PDFs are generated in the browser with pdf-lib from the stored Intelligence object — exports add no API usage and preserve claim quotes, source links and AI-hypothesis labels.
 - Live discovery filtering and provisional card assessments are browser-only pure helpers; excerpts never upgrade locations to verified facts, and existing cited research is reused only for matching criteria to avoid extra API usage.
+- Live result profiles normalize the actual Tavily excerpt and already stored quote-validated research in browser-safe `src/lib/lead-profile.ts`; missing facts remain unavailable and results never trigger additional enrichment calls.
