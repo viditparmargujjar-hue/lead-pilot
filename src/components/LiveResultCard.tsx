@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Bookmark, BookmarkCheck, ExternalLink, Globe, MapPin, Phone, Mail, MessageCircle, Sparkles, Building2, CalendarDays, CheckCircle2, UserRound, Layers3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ function Info({ icon: Icon, label, value, href }: { icon: typeof Globe; label: s
   return <div className="flex min-w-0 items-start gap-2.5"><Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><div className="min-w-0"><p className="text-[11px] text-muted-foreground">{label}</p>{href ? <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="break-all text-sm text-primary underline-offset-2 hover:underline">{value}</a> : <p className="break-words text-sm">{value}</p>}</div></div>;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return <section className="space-y-3 border-t pt-4"><h3 className="text-sm font-semibold">{title}</h3><div className="grid gap-3 sm:grid-cols-2">{children}</div></section>;
 }
 
