@@ -10,7 +10,7 @@ import { discoveryDetails } from '@/lib/live-result-details';
 import { toLeadProfile } from '@/lib/lead-profile';
 import type { LiveResult } from '@/lib/live-search';
 
-function Info({ icon: Icon, label, value, href }: { icon: typeof Globe; label: string; value: string | null | undefined; href?: string }) {
+function Info({ icon: Icon, label, value, href }: { icon: typeof Globe; label: string; value: string | null | undefined; href?: string | undefined }) {
   if (!value) return null;
   return <div className="flex min-w-0 items-start gap-2.5"><Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><div className="min-w-0"><p className="text-[11px] text-muted-foreground">{label}</p>{href ? <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="break-all text-sm text-primary underline-offset-2 hover:underline">{value}</a> : <p className="break-words text-sm">{value}</p>}</div></div>;
 }

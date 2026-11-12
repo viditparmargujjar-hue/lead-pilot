@@ -66,7 +66,7 @@ export function leadsToCsv(list: LeadProfile[]): string {
 }
 
 export async function leadsToXlsx(list: LeadProfile[]): Promise<Blob> {
-  const { default: writeXlsxFile } = await import("write-excel-file");
+  const { default: writeXlsxFile } = await import("write-excel-file/browser");
   const data = [EXPORT_COLUMNS.map(c => ({ value: c[0], fontWeight: "bold" as const })), ...list.map(p => EXPORT_COLUMNS.map(c => ({ value: c[1](p) })))];
   return (await writeXlsxFile(data, {})) as unknown as Blob;
 }

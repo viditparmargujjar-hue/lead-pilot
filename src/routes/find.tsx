@@ -196,7 +196,7 @@ function FindLeads() {
           <label className="min-w-0 space-y-1.5 text-xs font-medium text-muted-foreground">Lead status
             <select aria-label="Lead status" className={sel} value={lf.status} onChange={e => setLf(p => ({ ...p, status: e.target.value }))}><option value="">Any status</option><option value="saved">Saved</option><option value="unsaved">Not saved</option></select>
           </label>
-          <div className="flex items-end"><Button variant="outline" onClick={() => setLf({ keyword: "", site: "", status: "" })} className="h-10 w-full"><RotateCcw />Reset Filters</Button></div>
+          <div className="flex items-end"><Button variant="outline" onClick={() => setLf({ keyword: "", site: "", status: "", industry: "", location: "", completeness: "", contact: "" })} className="h-10 w-full"><RotateCcw />Reset Filters</Button></div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">Web results have no verified industry, location or size fields, so filters only check the sourced text and site type.</p>
       </details>
