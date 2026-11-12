@@ -72,7 +72,6 @@ function FindLeads() {
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Status>("Contacted");
   const [exportBusy, setExportBusy] = useState(false);
-  const lfActive = Object.values(lf).filter(Boolean).length;
   const profiles = useMemo(() => (live?.results ?? []).map(r => toLeadProfile(r, live?.q ?? "", getLiveAnalysis(`live:${r.domain}`))), [live]);
   const fieldAvailability = useMemo(() => availableProfileFields(profiles), [profiles]);
   const industries = useMemo(() => [...new Set(profiles.map(p => p.industry).filter((v): v is string => !!v))].sort(), [profiles]);
@@ -140,6 +139,7 @@ function FindLeads() {
     request.current = controller;
     const q = normalizeQuery(input);
     setText(q);
+    setSelected([]);
     setSearch(q, {});
     if (!q) { setLive(null); return; }
     setLive({ q, results: null, error: null, loading: true });
@@ -184,23 +184,6 @@ function FindLeads() {
         </div>
       </form>
 
-      <details open className="mt-4 border-y py-4">
-        <summary className="cursor-pointer text-sm font-medium"><SlidersHorizontal className="mr-2 inline h-4 w-4 text-primary" />Filters{lfActive > 0 && <span className="ml-2 text-primary">({lfActive} active)</span>}</summary>
-        <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="min-w-0 space-y-1.5 text-xs font-medium text-muted-foreground">Keyword in source text
-            <input aria-label="Keyword in source text" className={sel} value={lf.keyword} placeholder="e.g. Bengaluru, fintech" onChange={e => setLf(p => ({ ...p, keyword: e.target.value }))} />
-          </label>
-          <label className="min-w-0 space-y-1.5 text-xs font-medium text-muted-foreground">Site type
-            <select aria-label="Site type" className={sel} value={lf.site} onChange={e => setLf(p => ({ ...p, site: e.target.value }))}><option value="">All results</option><option value="official">Company website candidates</option><option value="directory">Directories / articles</option></select>
-          </label>
-          <label className="min-w-0 space-y-1.5 text-xs font-medium text-muted-foreground">Lead status
-            <select aria-label="Lead status" className={sel} value={lf.status} onChange={e => setLf(p => ({ ...p, status: e.target.value }))}><option value="">Any status</option><option value="saved">Saved</option><option value="unsaved">Not saved</option></select>
-          </label>
-          <div className="flex items-end"><Button variant="outline" onClick={() => setLf({ keyword: "", site: "", status: "", industry: "", location: "", completeness: "", contact: "" })} className="h-10 w-full"><RotateCcw />Reset Filters</Button></div>
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground">Web results have no verified industry, location or size fields, so filters only check the sourced text and site type.</p>
-      </details>
-
       {(
         <div className="mt-6 space-y-4">
           {live?.loading && <div role="status" className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin text-primary" />Searching the live web…</div>}
@@ -212,12 +195,16 @@ function FindLeads() {
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">{[{ label: "Total results", value: summary.total, icon: UsersRound }, { label: "With phone", value: summary.phone, icon: Phone }, { label: "With email", value: summary.email, icon: Mail }, { label: "With website", value: summary.website, icon: Globe }, { label: "With LinkedIn", value: summary.linkedin, icon: Linkedin }, { label: "Phone + email", value: summary.contact, icon: CheckCheck }].map(item => <div key={item.label} className="min-w-0 border-l-2 border-primary/40 px-3 py-2"><div className="flex items-center gap-1.5 text-xs text-muted-foreground"><item.icon className="h-3.5 w-3.5 shrink-0" />{item.label}</div><p className="mt-1 text-xl font-semibold tabular-nums">{item.value}</p></div>)}</div>
               </section>
               <p className="text-xs text-muted-foreground">Search excerpts are not verified company facts. Open Research for full-page evidence, cited company details and optional AI analysis.</p>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid min-w-0 gap-3 border-y py-4 sm:grid-cols-2 xl:grid-cols-4">
+                <label className="space-y-1 text-xs text-muted-foreground">Keyword in source text<input aria-label="Keyword in source text" className={sel} value={lf.keyword} placeholder="Company or phrase" onChange={e => setLf(p => ({ ...p, keyword: e.target.value }))} /></label>
+                <label className="space-y-1 text-xs text-muted-foreground">Result type<select aria-label="Site type" className={sel} value={lf.site} onChange={e => setLf(p => ({ ...p, site: e.target.value }))}><option value="">All results</option><option value="official">Company website candidates</option><option value="directory">Directories / articles</option></select></label>
+                <label className="space-y-1 text-xs text-muted-foreground">Saved status<select aria-label="Lead status" className={sel} value={lf.status} onChange={e => setLf(p => ({ ...p, status: e.target.value }))}><option value="">Any status</option><option value="saved">Saved</option><option value="unsaved">Not saved</option></select></label>
                 {fieldAvailability.industry && <label className="space-y-1 text-xs text-muted-foreground">Industry from available results<select aria-label="Filter by industry" className={sel} value={lf.industry} onChange={e => setLf(p => ({ ...p, industry: e.target.value }))}><option value="">All industries</option>{industries.map(i => <option key={i}>{i}</option>)}</select></label>}
                 <label className="space-y-1 text-xs text-muted-foreground">Location in returned data<input aria-label="Filter by location" className={sel} placeholder="City, state, country" value={lf.location} onChange={e => setLf(p => ({ ...p, location: e.target.value }))} /></label>
                 <label className="space-y-1 text-xs text-muted-foreground">Data completeness<select aria-label="Filter by data completeness" className={sel} value={lf.completeness} onChange={e => setLf(p => ({ ...p, completeness: e.target.value }))}><option value="">Any completeness</option><option value="50">50% or more</option><option value="75">75% or more</option><option value="100">Complete profiles</option></select></label>
                 <label className="space-y-1 text-xs text-muted-foreground">Available contact detail<select aria-label="Filter by contact detail" className={sel} value={lf.contact} onChange={e => setLf(p => ({ ...p, contact: e.target.value }))}><option value="">Any contact detail</option>{fieldAvailability.phone && <option value="phone">Has phone</option>}{fieldAvailability.email && <option value="email">Has email</option>}{fieldAvailability.website && <option value="website">Has website</option>}{fieldAvailability.linkedin && <option value="linkedin">Has LinkedIn</option>}{fieldAvailability.whatsapp && <option value="whatsapp">Has WhatsApp</option>}</select></label>
                 <label className="space-y-1 text-xs text-muted-foreground">Sort results<select aria-label="Sort results" className={sel} value={sortBy} onChange={e => setSortBy(e.target.value)}><option value="recent">Recently retrieved</option><option value="name-asc">Company name A–Z</option><option value="name-desc">Company name Z–A</option><option value="largest">Largest companies</option><option value="smallest">Smallest companies</option><option value="completeness">Most complete profiles</option></select></label>
+                <div className="flex items-end"><Button variant="outline" onClick={() => setLf({ keyword: "", site: "", status: "", industry: "", location: "", completeness: "", contact: "" })} className="h-10 w-full"><RotateCcw />Reset filters</Button></div>
               </div>
               <div className="flex flex-wrap items-center gap-2 border-y py-3">
                 <label className="flex items-center gap-2 pr-2 text-sm"><input type="checkbox" aria-label="Select all visible leads" checked={allVisibleSelected} onChange={e => setSelected(current => e.target.checked ? [...new Set([...current, ...orderedResults.map(r => `live:${r.domain}`)])] : current.filter(id => !orderedResults.some(r => id === `live:${r.domain}`)))} className="h-4 w-4 accent-primary" />Select all visible</label>
