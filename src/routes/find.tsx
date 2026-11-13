@@ -58,6 +58,7 @@ function FindLeads() {
   const { q: initialQ, t } = Route.useSearch();
   const [text, setText] = useState(initialQ ?? "");
   const request = useRef<AbortController | null>(null);
+  const requestQuery = useRef<string | null>(null);
   const [live, setLive] = useState<{ q: string; results: LiveResult[] | null; error: string | null; loading: boolean } | null>(null);
 
   useEffect(() => {
@@ -142,10 +143,12 @@ function FindLeads() {
   };
 
   const runLive = async (input: string) => {
+    const q = normalizeQuery(input);
+    if (request.current && !request.current.signal.aborted && requestQuery.current === q) return;
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
-    const q = normalizeQuery(input);
+    requestQuery.current = q;
     setText(q);
     setSelected([]);
     setSearch(q, {});
@@ -157,6 +160,8 @@ function FindLeads() {
       if (!controller.signal.aborted) { setLive({ q, results, error: null, loading: false }); history.add({ query: q, criteria: {}, count: results.length }); }
     } catch (err) {
       if (!controller.signal.aborted) setLive({ q, results: null, error: (err as Error).message, loading: false });
+    } finally {
+      if (request.current === controller) { request.current = null; requestQuery.current = null; }
     }
   };
 
