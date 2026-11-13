@@ -52,7 +52,7 @@ function downloadFile(blob: Blob, name: string) {
 }
 
 function FindLeads() {
-  const { setSearch, isSaved, toggleSave, saveMany, setStatus, saved } = useStore();
+  const { setSearch, isSaved, toggleSave, saveMany, setStatus } = useStore();
   const saveLive = (r: LiveResult) => { const id = registerLiveCompany({ ...r, query: live?.q ?? text }); const added = toggleSave(id); toast.success(added ? `${r.name} saved to My Leads` : `${r.name} removed from My Leads`); };
   const history = useHistory();
   const { q: initialQ, t } = Route.useSearch();
@@ -72,7 +72,11 @@ function FindLeads() {
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Status>("Contacted");
   const [exportBusy, setExportBusy] = useState(false);
-  const profiles = useMemo(() => (live?.results ?? []).map(r => toLeadProfile(r, live?.q ?? "", getLiveAnalysis(`live:${r.domain}`))), [live]);
+  const profiles = useMemo(() => (live?.results ?? []).map(r => {
+    const analysis = getLiveAnalysis(`live:${r.domain}`);
+    const matchingAnalysis = analysis?.criteria.trim().toLowerCase() === (live?.q ?? "").trim().toLowerCase() ? analysis : undefined;
+    return toLeadProfile(r, live?.q ?? "", matchingAnalysis);
+  }), [live]);
   const fieldAvailability = useMemo(() => availableProfileFields(profiles), [profiles]);
   const industries = useMemo(() => [...new Set(profiles.map(p => p.industry).filter((v): v is string => !!v))].sort(), [profiles]);
   const liveVisible = useMemo(() => (live?.results ?? []).filter(r => {
@@ -122,7 +126,11 @@ function FindLeads() {
 
   const exportResults = async (rows: LiveResult[], format: "csv" | "xlsx") => {
     if (!rows.length) return;
-    const data = rows.map(r => toLeadProfile(r, live?.q ?? "", getLiveAnalysis(`live:${r.domain}`)));
+    const data = rows.map(r => {
+      const analysis = getLiveAnalysis(`live:${r.domain}`);
+      const matchingAnalysis = analysis?.criteria.trim().toLowerCase() === (live?.q ?? "").trim().toLowerCase() ? analysis : undefined;
+      return toLeadProfile(r, live?.q ?? "", matchingAnalysis);
+    });
     const slug = (live?.q ?? "leads").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "leads";
     if (format === "csv") downloadFile(new Blob([leadsToCsv(data)], { type: "text/csv;charset=utf-8" }), `${slug}-leads.csv`);
     else {
