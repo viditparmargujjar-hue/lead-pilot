@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useHistory } from "@/lib/history";
-import { Loader2, Sparkles, Search, X, RotateCcw, SlidersHorizontal, AlertTriangle, Phone, Mail, Globe, Linkedin, CheckCheck, BookmarkPlus, BookmarkX, Download, UsersRound } from "lucide-react";
+import { Loader2, Search, X, RotateCcw, AlertTriangle, Phone, Mail, Globe, Linkedin, CheckCheck, BookmarkPlus, BookmarkX, Download, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/AppShell";
 import { CompareBar } from "@/components/CompareControls";
@@ -227,8 +227,8 @@ function FindLeads() {
                 <label className="flex items-center gap-2"><span className="sr-only">Selected lead status</span><select aria-label="Set selected lead status" className="h-8 rounded-md border bg-card px-2 text-xs" value={bulkStatus} onChange={e => setBulkStatus(e.target.value as Status)}>{SAVED_LEAD_STATUSES.map(s => <option key={s}>{s}</option>)}</select><Button size="sm" variant="outline" disabled={!selectedSaved.length} onClick={() => { selectedSaved.forEach(r => setStatus(`live:${r.domain}`, bulkStatus)); toast.success(`Updated ${selectedSaved.length} saved leads`); }}>Set status</Button></label>
                 <Button size="sm" variant="outline" disabled={!selectedVisible.length || exportBusy} onClick={() => void exportResults(selectedVisible, "csv")}><Download />Selected CSV</Button>
                 <Button size="sm" variant="outline" disabled={!selectedVisible.length || exportBusy} onClick={() => void exportResults(selectedVisible, "xlsx")}><Download />Selected Excel</Button>
-                <Button size="sm" variant="outline" disabled={!orderedResults.length || exportBusy} onClick={() => void exportResults(orderedResults, "csv")}><Download />All CSV</Button>
-                <Button size="sm" variant="outline" disabled={!orderedResults.length || exportBusy} onClick={() => void exportResults(orderedResults, "xlsx")}><Download />All Excel</Button>
+                <Button size="sm" variant="outline" disabled={!live.results.length || exportBusy} onClick={() => void exportResults(live.results ?? [], "csv")}><Download />All CSV</Button>
+                <Button size="sm" variant="outline" disabled={!live.results.length || exportBusy} onClick={() => void exportResults(live.results ?? [], "xlsx")}><Download />All Excel</Button>
                 <Button size="sm" variant="ghost" onClick={() => setSelected([])}>Clear selection</Button>
               </div>
               {liveVisible.length === 0 ? <p className="border-y p-8 text-center text-sm text-muted-foreground">No leads found. Try changing your search query or filters.</p> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{orderedResults.map(r => <LiveResultCard key={r.domain} result={r} query={live.q} saved={isSaved(`live:${r.domain}`)} onSave={() => saveLive(r)} selected={selected.includes(`live:${r.domain}`)} onSelect={checked => setSelected(current => checked ? [...new Set([...current, `live:${r.domain}`])] : current.filter(id => id !== `live:${r.domain}`))} />)}</div>}
