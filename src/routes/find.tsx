@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useHistory } from "@/lib/history";
-import { Loader2, Sparkles, Search, X, RotateCcw, SlidersHorizontal, AlertTriangle, Phone, Mail, Globe, Linkedin, CheckCheck, BookmarkPlus, BookmarkX, Download, UsersRound } from "lucide-react";
+import { Loader2, Search, X, RotateCcw, AlertTriangle, Phone, Mail, Globe, Linkedin, CheckCheck, BookmarkPlus, BookmarkX, Download, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/AppShell";
 import { CompareBar } from "@/components/CompareControls";
@@ -52,12 +52,13 @@ function downloadFile(blob: Blob, name: string) {
 }
 
 function FindLeads() {
-  const { setSearch, isSaved, toggleSave, saveMany, setStatus, saved } = useStore();
+  const { setSearch, isSaved, toggleSave, saveMany, setStatus } = useStore();
   const saveLive = (r: LiveResult) => { const id = registerLiveCompany({ ...r, query: live?.q ?? text }); const added = toggleSave(id); toast.success(added ? `${r.name} saved to My Leads` : `${r.name} removed from My Leads`); };
   const history = useHistory();
   const { q: initialQ, t } = Route.useSearch();
   const [text, setText] = useState(initialQ ?? "");
   const request = useRef<AbortController | null>(null);
+  const requestQuery = useRef<string | null>(null);
   const [live, setLive] = useState<{ q: string; results: LiveResult[] | null; error: string | null; loading: boolean } | null>(null);
 
   useEffect(() => {
@@ -72,7 +73,11 @@ function FindLeads() {
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<Status>("Contacted");
   const [exportBusy, setExportBusy] = useState(false);
-  const profiles = useMemo(() => (live?.results ?? []).map(r => toLeadProfile(r, live?.q ?? "", getLiveAnalysis(`live:${r.domain}`))), [live]);
+  const profiles = useMemo(() => (live?.results ?? []).map(r => {
+    const analysis = getLiveAnalysis(`live:${r.domain}`);
+    const matchingAnalysis = analysis?.criteria.trim().toLowerCase() === (live?.q ?? "").trim().toLowerCase() ? analysis : undefined;
+    return toLeadProfile(r, live?.q ?? "", matchingAnalysis);
+  }), [live]);
   const fieldAvailability = useMemo(() => availableProfileFields(profiles), [profiles]);
   const industries = useMemo(() => [...new Set(profiles.map(p => p.industry).filter((v): v is string => !!v))].sort(), [profiles]);
   const liveVisible = useMemo(() => (live?.results ?? []).filter(r => {
@@ -122,7 +127,11 @@ function FindLeads() {
 
   const exportResults = async (rows: LiveResult[], format: "csv" | "xlsx") => {
     if (!rows.length) return;
-    const data = rows.map(r => toLeadProfile(r, live?.q ?? "", getLiveAnalysis(`live:${r.domain}`)));
+    const data = rows.map(r => {
+      const analysis = getLiveAnalysis(`live:${r.domain}`);
+      const matchingAnalysis = analysis?.criteria.trim().toLowerCase() === (live?.q ?? "").trim().toLowerCase() ? analysis : undefined;
+      return toLeadProfile(r, live?.q ?? "", matchingAnalysis);
+    });
     const slug = (live?.q ?? "leads").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "leads";
     if (format === "csv") downloadFile(new Blob([leadsToCsv(data)], { type: "text/csv;charset=utf-8" }), `${slug}-leads.csv`);
     else {
@@ -134,10 +143,12 @@ function FindLeads() {
   };
 
   const runLive = async (input: string) => {
+    const q = normalizeQuery(input);
+    if (request.current && !request.current.signal.aborted && requestQuery.current === q) return;
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
-    const q = normalizeQuery(input);
+    requestQuery.current = q;
     setText(q);
     setSelected([]);
     setSearch(q, {});
@@ -149,6 +160,8 @@ function FindLeads() {
       if (!controller.signal.aborted) { setLive({ q, results, error: null, loading: false }); history.add({ query: q, criteria: {}, count: results.length }); }
     } catch (err) {
       if (!controller.signal.aborted) setLive({ q, results: null, error: (err as Error).message, loading: false });
+    } finally {
+      if (request.current === controller) { request.current = null; requestQuery.current = null; }
     }
   };
 
@@ -214,8 +227,8 @@ function FindLeads() {
                 <label className="flex items-center gap-2"><span className="sr-only">Selected lead status</span><select aria-label="Set selected lead status" className="h-8 rounded-md border bg-card px-2 text-xs" value={bulkStatus} onChange={e => setBulkStatus(e.target.value as Status)}>{SAVED_LEAD_STATUSES.map(s => <option key={s}>{s}</option>)}</select><Button size="sm" variant="outline" disabled={!selectedSaved.length} onClick={() => { selectedSaved.forEach(r => setStatus(`live:${r.domain}`, bulkStatus)); toast.success(`Updated ${selectedSaved.length} saved leads`); }}>Set status</Button></label>
                 <Button size="sm" variant="outline" disabled={!selectedVisible.length || exportBusy} onClick={() => void exportResults(selectedVisible, "csv")}><Download />Selected CSV</Button>
                 <Button size="sm" variant="outline" disabled={!selectedVisible.length || exportBusy} onClick={() => void exportResults(selectedVisible, "xlsx")}><Download />Selected Excel</Button>
-                <Button size="sm" variant="outline" disabled={!orderedResults.length || exportBusy} onClick={() => void exportResults(orderedResults, "csv")}><Download />All CSV</Button>
-                <Button size="sm" variant="outline" disabled={!orderedResults.length || exportBusy} onClick={() => void exportResults(orderedResults, "xlsx")}><Download />All Excel</Button>
+                <Button size="sm" variant="outline" disabled={!live.results.length || exportBusy} onClick={() => void exportResults(live.results ?? [], "csv")}><Download />All CSV</Button>
+                <Button size="sm" variant="outline" disabled={!live.results.length || exportBusy} onClick={() => void exportResults(live.results ?? [], "xlsx")}><Download />All Excel</Button>
                 <Button size="sm" variant="ghost" onClick={() => setSelected([])}>Clear selection</Button>
               </div>
               {liveVisible.length === 0 ? <p className="border-y p-8 text-center text-sm text-muted-foreground">No leads found. Try changing your search query or filters.</p> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{orderedResults.map(r => <LiveResultCard key={r.domain} result={r} query={live.q} saved={isSaved(`live:${r.domain}`)} onSave={() => saveLive(r)} selected={selected.includes(`live:${r.domain}`)} onSelect={checked => setSelected(current => checked ? [...new Set([...current, `live:${r.domain}`])] : current.filter(id => id !== `live:${r.domain}`))} />)}</div>}
