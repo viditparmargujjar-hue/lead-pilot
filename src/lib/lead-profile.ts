@@ -44,7 +44,7 @@ export function toLeadProfile(r: LiveResult, query: string, analysis?: Intellige
 }
 
 export const EXPORT_COLUMNS: [string, (p: LeadProfile) => string][] = [
-  ["Company Name", p => p.name], ["Category", p => p.industry ?? ""], ["Industry", p => p.industry ?? ""],
+  ["Company Name", p => p.name], ["Category", () => ""], ["Industry", p => p.industry ?? ""],
   ["Phone", p => p.phones.join("; ")], ["Email", p => p.emails.join("; ")], ["Website", p => p.website ?? ""],
   ["Contact Person", () => ""], ["Designation", () => ""], ["Employee Count", p => p.employees ?? ""], ["Company Size", p => p.employees ?? ""],
   ["Address", p => p.location ?? ""], ["City", p => p.city ?? ""], ["State", p => p.state ?? ""], ["Country", p => p.country ?? ""],
