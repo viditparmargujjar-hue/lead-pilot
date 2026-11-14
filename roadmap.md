@@ -4,7 +4,7 @@
 - [x] Normalize Tavily results and matching existing cited research without fabricating missing facts; keep saved research tied to its original search criteria.
 - [x] Add completeness, contact-aware cards, detailed profiles, summary metrics, source-driven filters, sorting, selection, and bulk CSV/Excel actions; unavailable category remains blank in exports.
 - [x] Add Interested and Not Interested saved-lead statuses while preserving existing stored statuses and browser data.
-- [x] Verify real live results, detailed profile, save selection, selected CSV/Excel downloads, sorting/filtering, 390px no-overflow layout, and all 55 tests; preview build and browser console clean.
+- [x] Verify real live results, detailed profile, save selection, selected CSV/Excel downloads, sorting/filtering, 390px no-overflow layout, and all 56 tests; preview build and browser console clean.
 
 ## Live result card accuracy
 - [x] Filter unrelated and directory results locally; add honest source-based location and scoring summaries while preserving lead actions. Real Tavily search succeeded, saving/reload and comparison were verified; excerpts lacking requested locations are excluded, and remaining evidence gaps receive unavailable labels. No per-lead API calls added.
